@@ -3,7 +3,7 @@
 
 https://ocaml.org/problems
 
-*** #1 - Tail of a list
+*** #1 Tail of a list
 
 Write a function ~last : 'a list -> 'a option~ that returns the last element of a
 list
@@ -23,7 +23,7 @@ let rec last = function
   | _::xs -> last xs 
 #+end_src
 
-*** #2 - Last two elements of a list
+*** #2 Last two elements of a list
 
 Find the last but one (last and penultimate) elements of a list.
 
@@ -42,7 +42,7 @@ let rec last_two = function
   | _::xs -> last_two xs
 #+end_src
 
-*** #3 - N'th element of a list
+*** #3 N'th element of a list
 
 Find the N'th element of a list.
 
@@ -77,5 +77,79 @@ recursive solution.
 
 **** Solution
 #+begin_src ocaml
-
+let length list =
+  let rec length_rec acc = function
+    | [] -> acc
+    | _::xs -> length_rec (acc + 1) xs
+  in length_rec 0 list
 #+end_src
+
+*** #5 Reverse a list.
+
+OCaml standard library has List.rev but we ask that you reimplement it.
+
+#+begin_src ocaml
+# rev ["a"; "b"; "c"];;
+- : string list = ["c"; "b"; "a"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let rev (list: int list) =
+  let rec rev acc = function
+    | [] -> acc
+    | x::xs -> rev (x::acc) xs
+  in rev [] list
+#+end_src
+
+
+*** #6 Palindrome
+
+Find out whether a list is a palindrome.
+
+    HINT: a palindrome is its own reverse.
+
+#+begin_src ocaml
+# is_palindrome ["x"; "a"; "m"; "a"; "x"];;
+- : bool = true
+# not (is_palindrome ["a"; "b"]);;
+- : bool = true
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let is_palindrome list = list = List.rev list
+#+end_src
+
+
+*** #7 Flatten a list
+
+Flatten a nested list structure.
+
+#+begin_src ocaml
+type 'a node =
+  | One of 'a 
+  | Many of 'a node list
+
+# flatten [One "a"; Many [One "b"; Many [One "c" ;One "d"]; One "e"]];;
+- : string list = ["a"; "b"; "c"; "d"; "e"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let flatten nodes =
+  let rec f = function
+    | One x -> [x]
+    | Many xs -> List.concat_map f xs
+  in nodes |> List.concat_map f
+
+(* Or without List.concat_map *)
+
+let flatten2 nodes =
+  let rec f acc = function
+    | [] -> acc
+    | One n::ns -> f (n::acc) ns
+    | Many ns::rest -> f (f acc ns) rest
+  in f [] nodes |> List.rev
+#+end_src
+
