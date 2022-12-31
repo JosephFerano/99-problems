@@ -153,3 +153,51 @@ let flatten2 nodes =
   in f [] nodes |> List.rev
 #+end_src
 
+
+*** #8 Eliminate duplicates
+
+Eliminate consecutive duplicates of list elements.
+
+#+begin_src ocaml
+# compress ["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e"];;
+- : string list = ["a"; "b"; "c"; "a"; "d"; "e"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let compress list =
+  let rec f acc list =
+    match (list, acc) with
+    | [] , _ -> acc
+    | x::xs , y::_ when x = y -> f acc xs
+    | x::xs , _ -> f (x::acc) xs
+  in f [] list |> List.rev
+#+end_src
+
+
+
+*** #9 Pack consecutive duplicates
+
+Pack consecutive duplicates of list elements into sublists.
+
+#+begin_src ocaml
+# pack ["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "d"; "e"; "e"; "e"; "e"];;
+- : string list list =
+[["a"; "a"; "a"; "a"]; ["b"]; ["c"; "c"]; ["a"; "a"]; ["d"; "d"];
+ ["e"; "e"; "e"; "e"]]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let rec pack list =
+  let rec f acc1 acc2 = function
+    | [] -> []
+    | [x] -> (x::acc1)::acc2
+    | x::(y::xs as tail) ->
+       if x = y
+       then f (x::acc1) acc2 tail
+       else f [] ((x::acc1)::acc2) tail
+  in f [] [] list |> List.rev
+
+#+end_src
+
