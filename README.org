@@ -201,3 +201,29 @@ let rec pack list =
 
 #+end_src
 
+
+*** #10 Run-length encoding
+
+If you need so, refresh your memory about run-length encoding.
+
+Here is an example:
+
+#+begin_src ocaml
+# encode ["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e"];;
+- : (int * string) list =
+[(4, "a"); (1, "b"); (2, "c"); (2, "a"); (1, "d"); (4, "e")]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let encode = function
+  | [] -> []
+  | list ->
+     let rec f (count, item) acc2 = function
+       | [x] -> (count, item)::acc2
+       | x::(y::xs as tail) when x = y -> f (count + 1, item) acc2 tail
+       | x::(y::xs as tail) -> f (1, y) ((count, item)::acc2) tail
+       | [] -> []
+     in f (1, List.nth list 0) [] list |> List.rev
+#+end_src
+
