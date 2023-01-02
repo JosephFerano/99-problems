@@ -227,3 +227,59 @@ let encode = function
      in f (1, List.nth list 0) [] list |> List.rev
 #+end_src
 
+
+*** #11 Modified run-length encoding
+
+Modify the result of the previous problem in such a way that if an element has
+no duplicates it is simply copied into the result list. Only elements with
+duplicates are transferred as (N E) lists.
+
+Since OCaml lists are homogeneous, one needs to define a type to hold both
+single elements and sub-lists.
+
+
+#+begin_src ocaml
+type 'a rle =
+  | One of 'a
+  | Many of int * 'a
+
+# encode ["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e"];;
+- : string rle list =
+[Many (4, "a"); One "b"; Many (2, "c"); Many (2, "a"); One "d"; Many (4, "e")]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let encode = function
+  | [] -> []
+  | list ->
+     let rec f (count, elem) acc2 = function
+       | [] -> []
+       | [x] when count = 0 -> (One x)::acc2
+       | [x] -> (Many (count + 1, x))::acc2
+       | x::(y::xs as tail) when x = y -> f (count + 1, elem) acc2 tail
+       | x::(y::xs as tail) when count = 0 -> f (0, y) ((One x)::acc2) tail
+       | x::(y::xs as tail) -> f (0, y) ((Many (count + 1, x))::acc2) tail
+     in f (0, List.nth list 0) [] list |> List.rev
+
+#+end_src
+
+
+*** #12 Decode a run-length encoded list
+
+Given a run-length code list generated as specified in the previous problem,
+construct its uncompressed version.
+
+#+begin_src ocaml
+# decode [Many (4, "a"); One "b"; Many (2, "c"); Many (2, "a");
+          One "d"; Many (4, "e")];;
+
+- : string list =
+["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+
+#+end_src
+
