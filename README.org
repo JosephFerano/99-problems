@@ -280,6 +280,92 @@ construct its uncompressed version.
 
 **** Solution
 #+begin_src ocaml
+let decode list =
+  let rec f acc = function
+    | [] -> acc
+    | One c::tail -> f (c::acc) tail
+    | Many (n, c)::tail when n > 1 -> f (c::acc) (Many(n-1,c)::tail)
+    | Many (_, c)::tail -> f (c::acc) tail
+  in f [] list |> List.rev
+#+end_src
+
+
+*** #13 Run-length encoding of a list (direct solution)
+
+Implement the so-called run-length encoding data compression method
+directly. I.e. don't explicitly create the sublists containing the duplicates,
+as in problem "Pack consecutive duplicates of list elements into sublists", but
+only count them. As in problem "Modified run-length encoding", simplify the
+result list by replacing the singleton lists (1 X) by X.
+
+#+begin_src ocaml
+# encode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
+- : string rle list =
+[Many (4, "a"); One "b"; Many (2, "c"); Many (2, "a"); One "d"; Many (4, "e")]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
 
 #+end_src
+
+
+*** #14 Duplicate the elements of a list
+
+Duplicate the elements of a list.
+
+#+begin_src ocaml
+# duplicate ["a"; "b"; "c"; "c"; "d"];;
+- : string list = ["a"; "a"; "b"; "b"; "c"; "c"; "c"; "c"; "d"; "d"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let duplicate list =
+  let rec f acc = function
+    | [] -> acc
+    | x::xs -> f (x::x::acc) xs
+  in f [] list |> List.rev
+#+end_src
+
+
+*** #15 Replicate the elements of a list a given number of times
+
+Replicate the elements of a list a given number of times.
+
+#+begin_src ocaml
+# replicate ["a"; "b"; "c"] 3;;
+- : string list = ["a"; "a"; "a"; "b"; "b"; "b"; "c"; "c"; "c"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let replicate list num =
+  let rec f (count, acc) = function
+    | [] -> acc
+    | x::xs when count <= 1 -> f (num, x::acc) xs
+    | (x::_ as l) -> f (count - 1, x::acc) l
+  in f (num,[]) list |> List.rev
+#+end_src
+
+
+*** #16 Drop every N'th element from a list
+
+Drop every N'th element from a list.
+
+#+begin_src ocaml
+# drop ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"; "i"; "j"] 3;;
+- : string list = ["a"; "b"; "d"; "e"; "g"; "h"; "j"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let drop list num =
+  let rec f (count, acc) = function
+    | [] -> acc
+    | x::xs when count = 1 -> f (num, acc) xs
+    | x::xs -> f (count-1, x::acc) xs
+  in f (num,[]) list |> List.rev
+#+end_src
+
 
