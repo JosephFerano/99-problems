@@ -198,7 +198,6 @@ let rec pack list =
        then f (x::acc1) acc2 tail
        else f [] ((x::acc1)::acc2) tail
   in f [] [] list |> List.rev
-
 #+end_src
 
 
@@ -250,18 +249,23 @@ type 'a rle =
 
 **** Solution
 #+begin_src ocaml
-let encode = function
-  | [] -> []
-  | list ->
-     let rec f (count, elem) acc2 = function
-       | [] -> []
-       | [x] when count = 0 -> (One x)::acc2
-       | [x] -> (Many (count + 1, x))::acc2
-       | x::(y::xs as tail) when x = y -> f (count + 1, elem) acc2 tail
-       | x::(y::xs as tail) when count = 0 -> f (0, y) ((One x)::acc2) tail
-       | x::(y::xs as tail) -> f (0, y) ((Many (count + 1, x))::acc2) tail
-     in f (0, List.nth list 0) [] list |> List.rev
+let rec pack list =
+  let rec f acc1 acc2 = function
+    | [] -> []
+    | [x] -> (x::acc1)::acc2
+    | x::(y::xs as tail) ->
+       if x = y
+       then f (x::acc1) acc2 tail
+       else f [] ((x::acc1)::acc2) tail
+  in f [] [] list |> List.rev
 
+let encode list =
+  let packed = pack list
+  in packed |>
+       List.map (function
+           | [] -> invalid_arg "List should not be empty"
+           | [x] -> One x
+           | x::xs as l -> Many (List.length l, x))
 #+end_src
 
 
@@ -306,7 +310,17 @@ result list by replacing the singleton lists (1 X) by X.
 
 **** Solution
 #+begin_src ocaml
-
+let encode = function
+  | [] -> []
+  | list ->
+     let rec f (count, elem) acc2 = function
+       | [] -> []
+       | [x] when count = 0 -> (One x)::acc2
+       | [x] -> (Many (count + 1, x))::acc2
+       | x::(y::xs as tail) when x = y -> f (count + 1, elem) acc2 tail
+       | x::(y::xs as tail) when count = 0 -> f (0, y) ((One x)::acc2) tail
+       | x::(y::xs as tail) -> f (0, y) ((Many (count + 1, x))::acc2) tail
+     in f (0, List.nth list 0) [] list |> List.rev
 #+end_src
 
 
@@ -367,5 +381,4 @@ let drop list num =
     | x::xs -> f (count-1, x::acc) xs
   in f (num,[]) list |> List.rev
 #+end_src
-
 
