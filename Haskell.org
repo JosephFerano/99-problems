@@ -1,0 +1,80 @@
+#+TITLE: 99 Haskell Problems
+#+Author: Joseph Ferano
+
+https://wiki.haskell.org/H-99:_Ninety-Nine_Haskell_Problems
+
+*** #1 Find the last element of a list. 
+
+#+begin_src haskell
+λ> myLast [1,2,3,4]
+4
+λ> myLast ['x','y','z']
+'z'
+#+end_src
+
+
+**** Solution
+#+begin_src haskell
+myLast [] = error "Cannot accept an empty list"
+myLast [x] = x
+myLast (_:xs) = myLast xs
+#+end_src
+
+*** #2 Find the last but one element of a list.
+
+#+begin_src haskell
+λ> myButLast [1,2,3,4]
+3
+λ> myButLast ['a'..'z']
+'y'
+#+end_src
+
+
+**** Solution
+#+begin_src haskell
+myButLast x
+  | length x < 2 = error "Cannot accept an empty list"
+  | otherwise = case x of
+                  [x,y] -> x
+                  (x:xs) -> myButLast xs
+#+end_src
+
+
+*** #3 Find the K'th element of a list.
+
+The first element in the list is number 1.
+
+#+begin_src haskell
+λ> elementAt [1,2,3] 2
+2
+λ> elementAt "haskell" 5
+'e'
+#+end_src
+
+
+**** Solution
+#+begin_src haskell
+elementAt (x:xs) i = if i == 1 then x else elementAt xs (i - 1)
+#+end_src
+
+
+*** #4 Find the number of elements of a list. 
+
+#+begin_src haskell
+λ> myLength [123, 456, 789]
+3
+λ> myLength "Hello, world!"
+13
+#+end_src
+
+
+**** Solution
+
+#+begin_src haskell
+myLength [] = 0
+myLength xs = foldl (\acc _ -> acc + 1) 0 xs
+-- or
+myLength [] = 0
+myLength (_:xs) = 1 + myLength xs
+#+end_src
+
