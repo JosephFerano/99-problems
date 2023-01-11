@@ -1,0 +1,383 @@
+#+TITLE: 99 Ocaml Problems
+#+Author: Joseph Ferano
+
+https://ocaml.org/problems
+
+*** #1 Tail of a list
+
+Write a function ~last : 'a list -> 'a option~ that returns the last element of a
+list
+
+#+begin_src ocaml
+# last ["a" ; "b" ; "c" ; "d"];;
+- : string option = Some "d"
+                      # last [];;
+- : 'a option = None
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let rec last = function
+  | []    -> None
+  | [x]   -> Some x
+  | _::xs -> last xs 
+#+end_src
+
+*** #2 Last two elements of a list
+
+Find the last but one (last and penultimate) elements of a list.
+
+#+begin_src ocaml
+# last_two ["a"; "b"; "c"; "d"];;
+- : (string * string) option = Some ("c", "d")
+# last_two ["a"];;
+- : (string * string) option = None
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let rec last_two = function
+  | [] | [_] -> None
+  | [x;y] -> Some (x,y)
+  | _::xs -> last_two xs
+#+end_src
+
+*** #3 N'th element of a list
+
+Find the N'th element of a list.
+
+REMARK: OCaml has List.nth which numbers elements from 0 and raises an exception
+if the index is out of bounds.
+
+#+begin_src ocaml
+# List.nth ["a"; "b"; "c"; "d"; "e"] 2;;
+- : string = "c"
+# List.nth ["a"] 2;;
+Exception: Failure "nth".
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let rec nth index = function
+  | [] -> failwith "nth"
+  | x::xs -> if index = 0 then x else nth (index - 1) xs
+#+end_src
+
+*** #4 Find the number of elements of a list.
+
+OCaml standard library has List.length but we ask that you reimplement it. Bonus for a tail
+recursive solution.
+
+#+begin_src ocaml
+# length ["a"; "b"; "c"];;
+- : int = 3
+# length [];;
+- : int = 0
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let length list =
+  let rec length_rec acc = function
+    | [] -> acc
+    | _::xs -> length_rec (acc + 1) xs
+  in length_rec 0 list
+#+end_src
+
+*** #5 Reverse a list.
+
+OCaml standard library has List.rev but we ask that you reimplement it.
+
+#+begin_src ocaml
+# rev ["a"; "b"; "c"];;
+- : string list = ["c"; "b"; "a"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let rev (list: int list) =
+  let rec rev acc = function
+    | [] -> acc
+    | x::xs -> rev (x::acc) xs
+  in rev [] list
+#+end_src
+
+
+*** #6 Palindrome
+
+Find out whether a list is a palindrome.
+
+    HINT: a palindrome is its own reverse.
+
+#+begin_src ocaml
+# is_palindrome ["x"; "a"; "m"; "a"; "x"];;
+- : bool = true
+# not (is_palindrome ["a"; "b"]);;
+- : bool = true
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let is_palindrome list = list = List.rev list
+#+end_src
+
+
+*** #7 Flatten a list
+
+Flatten a nested list structure.
+
+#+begin_src ocaml
+type 'a node =
+  | One of 'a 
+  | Many of 'a node list
+
+# flatten [One "a"; Many [One "b"; Many [One "c" ;One "d"]; One "e"]];;
+- : string list = ["a"; "b"; "c"; "d"; "e"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let flatten nodes =
+  let rec f = function
+    | One x -> [x]
+    | Many xs -> List.concat_map f xs
+  in nodes |> List.concat_map f
+
+(* Or without List.concat_map *)
+
+let flatten2 nodes =
+  let rec f acc = function
+    | [] -> acc
+    | One n::ns -> f (n::acc) ns
+    | Many ns::rest -> f (f acc ns) rest
+  in f [] nodes |> List.rev
+#+end_src
+
+
+*** #8 Eliminate duplicates
+
+Eliminate consecutive duplicates of list elements.
+
+#+begin_src ocaml
+# compress ["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e"];;
+- : string list = ["a"; "b"; "c"; "a"; "d"; "e"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let compress list =
+  let rec f acc list =
+    match (list, acc) with
+    | [] , _ -> acc
+    | x::xs , y::_ when x = y -> f acc xs
+    | x::xs , _ -> f (x::acc) xs
+  in f [] list |> List.rev
+#+end_src
+
+
+
+*** #9 Pack consecutive duplicates
+
+Pack consecutive duplicates of list elements into sublists.
+
+#+begin_src ocaml
+# pack ["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "d"; "e"; "e"; "e"; "e"];;
+- : string list list =
+[["a"; "a"; "a"; "a"]; ["b"]; ["c"; "c"]; ["a"; "a"]; ["d"; "d"];
+ ["e"; "e"; "e"; "e"]]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let rec pack list =
+  let rec f acc1 acc2 = function
+    | [] -> []
+    | [x] -> (x::acc1)::acc2
+    | x::(y::xs as tail) ->
+       if x = y
+       then f (x::acc1) acc2 tail
+       else f [] ((x::acc1)::acc2) tail
+  in f [] [] list |> List.rev
+#+end_src
+
+
+*** #10 Run-length encoding
+
+If you need so, refresh your memory about run-length encoding.
+
+Here is an example:
+
+#+begin_src ocaml
+# encode ["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e"];;
+- : (int * string) list =
+[(4, "a"); (1, "b"); (2, "c"); (2, "a"); (1, "d"); (4, "e")]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let encode = function
+  | [] -> []
+  | list ->
+     let rec f (count, item) acc2 = function
+       | [x] -> (count, item)::acc2
+       | x::(y::xs as tail) when x = y -> f (count + 1, item) acc2 tail
+       | x::(y::xs as tail) -> f (1, y) ((count, item)::acc2) tail
+       | [] -> []
+     in f (1, List.nth list 0) [] list |> List.rev
+#+end_src
+
+
+*** #11 Modified run-length encoding
+
+Modify the result of the previous problem in such a way that if an element has
+no duplicates it is simply copied into the result list. Only elements with
+duplicates are transferred as (N E) lists.
+
+Since OCaml lists are homogeneous, one needs to define a type to hold both
+single elements and sub-lists.
+
+
+#+begin_src ocaml
+type 'a rle =
+  | One of 'a
+  | Many of int * 'a
+
+# encode ["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e"];;
+- : string rle list =
+[Many (4, "a"); One "b"; Many (2, "c"); Many (2, "a"); One "d"; Many (4, "e")]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let rec pack list =
+  let rec f acc1 acc2 = function
+    | [] -> []
+    | [x] -> (x::acc1)::acc2
+    | x::(y::xs as tail) ->
+       if x = y
+       then f (x::acc1) acc2 tail
+       else f [] ((x::acc1)::acc2) tail
+  in f [] [] list |> List.rev
+
+let encode list =
+  let packed = pack list
+  in packed |>
+       List.map (function
+           | [] -> invalid_arg "List should not be empty"
+           | [x] -> One x
+           | x::xs as l -> Many (List.length l, x))
+#+end_src
+
+
+*** #12 Decode a run-length encoded list
+
+Given a run-length code list generated as specified in the previous problem,
+construct its uncompressed version.
+
+#+begin_src ocaml
+# decode [Many (4, "a"); One "b"; Many (2, "c"); Many (2, "a");
+          One "d"; Many (4, "e")];;
+
+- : string list =
+["a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let decode list =
+  let rec f acc = function
+    | [] -> acc
+    | One c::tail -> f (c::acc) tail
+    | Many (n, c)::tail when n > 1 -> f (c::acc) (Many(n-1,c)::tail)
+    | Many (_, c)::tail -> f (c::acc) tail
+  in f [] list |> List.rev
+#+end_src
+
+
+*** #13 Run-length encoding of a list (direct solution)
+
+Implement the so-called run-length encoding data compression method
+directly. I.e. don't explicitly create the sublists containing the duplicates,
+as in problem "Pack consecutive duplicates of list elements into sublists", but
+only count them. As in problem "Modified run-length encoding", simplify the
+result list by replacing the singleton lists (1 X) by X.
+
+#+begin_src ocaml
+# encode ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
+- : string rle list =
+[Many (4, "a"); One "b"; Many (2, "c"); Many (2, "a"); One "d"; Many (4, "e")]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let encode = function
+  | [] -> []
+  | list ->
+     let rec f (count, elem) acc2 = function
+       | [] -> []
+       | [x] when count = 0 -> (One x)::acc2
+       | [x] -> (Many (count + 1, x))::acc2
+       | x::(y::xs as tail) when x = y -> f (count + 1, elem) acc2 tail
+       | x::(y::xs as tail) when count = 0 -> f (0, y) ((One x)::acc2) tail
+       | x::(y::xs as tail) -> f (0, y) ((Many (count + 1, x))::acc2) tail
+     in f (0, List.nth list 0) [] list |> List.rev
+#+end_src
+
+
+*** #14 Duplicate the elements of a list
+
+Duplicate the elements of a list.
+
+#+begin_src ocaml
+# duplicate ["a"; "b"; "c"; "c"; "d"];;
+- : string list = ["a"; "a"; "b"; "b"; "c"; "c"; "c"; "c"; "d"; "d"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let duplicate list =
+  let rec f acc = function
+    | [] -> acc
+    | x::xs -> f (x::x::acc) xs
+  in f [] list |> List.rev
+#+end_src
+
+
+*** #15 Replicate the elements of a list a given number of times
+
+Replicate the elements of a list a given number of times.
+
+#+begin_src ocaml
+# replicate ["a"; "b"; "c"] 3;;
+- : string list = ["a"; "a"; "a"; "b"; "b"; "b"; "c"; "c"; "c"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let replicate list num =
+  let rec f (count, acc) = function
+    | [] -> acc
+    | x::xs when count <= 1 -> f (num, x::acc) xs
+    | (x::_ as l) -> f (count - 1, x::acc) l
+  in f (num,[]) list |> List.rev
+#+end_src
+
+
+*** #16 Drop every N'th element from a list
+
+Drop every N'th element from a list.
+
+#+begin_src ocaml
+# drop ["a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"; "i"; "j"] 3;;
+- : string list = ["a"; "b"; "d"; "e"; "g"; "h"; "j"]
+#+end_src
+
+**** Solution
+#+begin_src ocaml
+let drop list num =
+  let rec f (count, acc) = function
+    | [] -> acc
+    | x::xs when count = 1 -> f (num, acc) xs
+    | x::xs -> f (count-1, x::acc) xs
+  in f (num,[]) list |> List.rev
+#+end_src
