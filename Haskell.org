@@ -18,7 +18,10 @@ https://wiki.haskell.org/H-99:_Ninety-Nine_Haskell_Problems
 myLast [] = error "Cannot accept an empty list"
 myLast [x] = x
 myLast (_:xs) = myLast xs
+
+myLast [1..5]
 #+end_src
+
 
 *** #2 Find the last but one element of a list.
 
@@ -74,7 +77,14 @@ elementAt (x:xs) i = if i == 1 then x else elementAt xs (i - 1)
 myLength [] = 0
 myLength xs = foldl (\acc _ -> acc + 1) 0 xs
 -- or
-myLength [] = 0
-myLength (_:xs) = 1 + myLength xs
+myLength' [] = 0
+myLength' [x] = 1
+myLength' (_:xs) = 1 + myLength xs
+
+myLength [1..5]
+myLength' [1..5]
 #+end_src
+
+#+RESULTS:
+: 5
 
