@@ -3,7 +3,7 @@
 
 https://wiki.haskell.org/H-99:_Ninety-Nine_Haskell_Problems
 
-*** #1 Find the last element of a list. 
+*** #1 Find the last element of a list.
 
 #+begin_src haskell
 λ> myLast [1,2,3,4]
@@ -61,7 +61,7 @@ elementAt (x:xs) i = if i == 1 then x else elementAt xs (i - 1)
 #+end_src
 
 
-*** #4 Find the number of elements of a list. 
+*** #4 Find the number of elements of a list.
 
 #+begin_src haskell
 λ> myLength [123, 456, 789]
@@ -80,11 +80,71 @@ myLength xs = foldl (\acc _ -> acc + 1) 0 xs
 myLength' [] = 0
 myLength' [x] = 1
 myLength' (_:xs) = 1 + myLength xs
-
-myLength [1..5]
-myLength' [1..5]
 #+end_src
 
-#+RESULTS:
-: 5
+*** #5 Reverse a list.
 
+#+begin_src haskell
+λ> myReverse "A man, a plan, a canal, panama!"
+"!amanap ,lanac a ,nalp a ,nam A"
+λ> myReverse [1,2,3,4]
+[4,3,2,1]
+#+end_src
+
+
+**** Solution
+
+#+begin_src haskell
+myReverse = go []
+  where go acc [] = acc
+        go acc (x:xs) = go (x:acc) xs
+#+end_src
+
+*** #6 Find out whether a list is a palindrome
+
+#+begin_src haskell
+λ> isPalindrome [1,2,3]
+False
+λ> isPalindrome "madamimadam"
+True
+λ> isPalindrome [1,2,4,8,16,8,4,2,1]
+True
+#+end_src
+
+**** Solution
+#+begin_src haskell
+isPalindrome xs = xs == reverse xs
+#+end_src
+*** #7 Flatten a nested list structure.
+Transform a list, possibly holding lists as elements into a `flat' list by replacing each list with its elements (recursively).
+
+Example:
+#+begin_src haskell
+,* (my-flatten '(a (b (c d) e)))
+(A B C D E)
+#+end_src
+
+Example in Haskell:
+
+We have to define a new data type, because lists in Haskell are homogeneous.
+
+#+begin_src haskell
+data NestedList a = Elem a | List [NestedList a]
+#+end_src
+
+#+begin_src haskell
+λ> flatten (Elem 5)
+[5]
+λ> flatten (List [Elem 1, List [Elem 2, List [Elem 3, Elem 4], Elem 5]])
+[1,2,3,4,5]
+λ> flatten (List [])
+[]
+#+end_src
+
+**** Solution
+#+begin_src haskell
+flatten = reverse . go []
+  where go acc (List []) = acc
+        go acc (Elem x) = x:acc
+        go acc (List (x:xs)) = go (go acc x) (List xs)
+#+end_src
